@@ -1,0 +1,87 @@
+import React, { useEffect, useState } from "react";
+
+export default function StudentsList() {
+  const [students, setStudents] = useState([]);
+  const [name, setName] = useState("");
+  const [marks, setMarks] = useState("");
+
+  // Fetch students from backend
+  useEffect(() => {
+    fetch("http://localhost:4000/students")
+      .then((res) => res.json())
+      .then((data) => setStudents(data))
+      .catch((err) => console.error("Error:", err));
+  }, []);
+
+  // Add new student
+  const addStudent = (e) => {
+    e.preventDefault();
+    const marksArray = marks.split(",").map((m) => parseInt(m.trim()));
+
+    fetch("http://localhost:4000/students", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, marks: marksArray })
+    })
+      .then((res) => res.json())
+      .then((newStudent) => {
+        setStudents([...students, newStudent]);
+        setName("");
+        setMarks("");
+      })
+      .catch((err) => console.error("Error:", err));
+  };
+
+  return (
+    <div className="p-6">
+      <h2 className="text-xl font-bold mb-4">🎓 Students Marks Calculator</h2>
+
+      {/* Add Student Form */}
+      <form onSubmit={addStudent} className="mb-6">
+        <input
+          type="text"
+          placeholder="Enter student name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="border p-2 mr-2"
+          required
+        />
+        <input
+          type="text"
+          placeholder="Enter marks (comma separated)"
+          value={marks}
+          onChange={(e) => setMarks(e.target.value)}
+          className="border p-2 mr-2"
+          required
+        />
+        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+          ➕ Add Student
+        </button>
+      </form>
+
+      {/* Students List */}
+      <table className="border-collapse border border-gray-400 w-full">
+        <thead>
+          <tr>
+            <th className="border p-2">Name</th>
+            <th className="border p-2">Marks</th>
+            <th className="border p-2">Total</th>
+            <th className="border p-2">Average</th>
+            <th className="border p-2">Highest</th>
+          </tr>
+        </thead>
+        <tbody>
+          {students.map((student) => (
+            <tr key={student.id}>
+              <td className="border p-2">{student.name}</td>
+              <td className="border p-2">{student.marks.join(", ")}</td>
+              <td className="border p-2">{student.total}</td>
+              <td className="border p-2">{student.average}</td>
+              <td className="border p-2">{student.highest}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
